@@ -1,0 +1,204 @@
+DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Mon carnet de notes</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 600px;
+      margin: 24px auto;
+      padding: 16px;
+      background: #f2f6ff;
+      color: #222;
+    }
+
+    main {
+      padding: 20px;
+      background: white;
+      border-radius: 12px;
+    }
+
+    h1 {
+      color: #2457d6;
+    }
+
+    .matiere {
+      margin: 16px 0;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+
+    label {
+      display: block;
+      margin-top: 10px;
+      font-weight: bold;
+    }
+
+    input, button {
+      width: 100%;
+      margin-top: 6px;
+      padding: 12px;
+      font-size: 16px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    #ajouter {
+      background: #e5f2fc;
+    }
+
+    #calculer {
+      color: white;
+      background: #2457d6;
+    }
+
+    .supprimer {
+      background: #fce9e7;
+    }
+
+    #resultat {
+      margin-top: 18px;
+      padding: 12px;
+      background: #e8f1ec;
+      border-radius: 8px;
+      font-weight: bold;
+    }
+
+    .aide {
+      color: #555;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+  </style>
+</head>
+
+<body>
+  <main>
+    <h1>Mon carnet de notes</h1>
+    <p>Ajoute tes matières, tes notes et leurs coefficients.</p>
+
+    <form id="formulaire">
+      <div id="liste-matieres"></div>
+
+      <button id="ajouter" type="button">+ Ajouter une matière</button>
+      <button id="calculer" type="submit">Calculer ma moyenne</button>
+    </form>
+
+    <p id="resultat" aria-live="polite"></p>
+
+    <p class="aide">
+      La mention affichée est indicative. Vérifie les seuils officiels
+      utilisés par ton établissement.
+    </p>
+  </main>
+
+  <script>
+    const listeMatieres = document.querySelector("#liste-matieres");
+    const formulaire = document.querySelector("#formulaire");
+    const resultat = document.querySelector("#resultat");
+    const boutonAjouter = document.querySelector("#ajouter");
+
+    function ajouterMatiere(nom = "") {
+      const bloc = document.createElement("div");
+      bloc.className = "matiere";
+
+      bloc.innerHTML = `
+        <label>Matière
+          <input class="nom-matiere" type="text"
+                 placeholder="Ex. Mathématiques" required>
+        </label>
+
+        <label>Note sur 20
+          <input class="note" type="number"
+                 min="0" max="20" step="0.25" required>
+        </label>
+
+        <label>Coefficient
+          <input class="coefficient" type="number"
+                 min="0.1" step="0.1" value="1" required>
+        </label>
+
+        <button class="supprimer" type="button">Supprimer cette matière</button>
+      `;
+
+      bloc.querySelector(".nom-matiere").value = nom;
+
+      bloc.querySelector(".supprimer").addEventListener("click", function() {
+        const nombreMatieres =
+          listeMatieres.querySelectorAll(".matiere").length;
+
+        if (nombreMatieres > 1) {
+          bloc.remove();
+          resultat.textContent = "";
+        } else {
+          resultat.textContent = "Garde au moins une matière.";
+        }
+      });
+
+      listeMatieres.appendChild(bloc);
+    }
+
+    ajouterMatiere("Mathématiques");
+    ajouterMatiere("Physique-chimie");
+    ajouterMatiere("SVT");
+
+    boutonAjouter.addEventListener("click", function() {
+      ajouterMatiere();
+    });
+
+    formulaire.addEventListener("submit", function(evenement) {
+      evenement.preventDefault();
+
+      const blocs =
+        listeMatieres.querySelectorAll(".matiere");
+
+      let totalPondere = 0;
+      let totalCoefficients = 0;
+
+      blocs.forEach(function(bloc) {
+        const note = Number(bloc.querySelector(".note").value);
+        const coefficient =
+          Number(bloc.querySelector(".coefficient").value);
+
+        totalPondere += note * coefficient;
+        totalCoefficients += coefficient;
+      });
+
+      const moyenne = totalPondere / totalCoefficients;
+
+      let mention;
+
+      if (moyenne >= 16) {
+        mention = "Très bien";
+      } else if (moyenne >= 14) {
+        mention = "Bien";
+      } else if (moyenne >= 12) {
+        mention = "Assez bien";
+      } else {
+        mention = "Pas de mention selon ce barème";
+      }
+
+      const moyenneAffichee = moyenne.toLocaleString("fr-FR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      });
+
+      resultat.textContent =
+        "Moyenne pondérée : " + moyenneAffichee +
+        " / 20 — Mention indicative : " + mention;
+    });
+  </script>
+</body>
+  </html>
